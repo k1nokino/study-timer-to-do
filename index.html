@@ -370,10 +370,24 @@ function renderCalendar() {
     html += "<td></td>";
   }
 
-  for (let d = 1; d <= lastDate; d++) {
-    html += `<td onclick="selectDate(${d})">${d}</td>`;
-    if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
-  }
+for (let d = 1; d <= lastDate; d++) {
+  html += `<td class="day" data-day="${d}">${d}</td>`;
+  if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
+}
+setTimeout(() => {
+  document.querySelectorAll(".day").forEach(td => {
+    td.addEventListener("click", () => {
+      let day = td.dataset.day;
+
+      let now = new Date();
+      selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
+
+      console.log("クリックされた:", selectedDate);
+
+      renderMain();
+    });
+  });
+}, 0);
 
   html += "</tr></table>";
   cal.innerHTML = html;
