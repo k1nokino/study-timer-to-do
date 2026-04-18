@@ -192,6 +192,21 @@ function renderMain() {
   let s = elapsed % 60;
 
   c.innerHTML = `
+  　<h3>ToDo</h3>
+
+<button onclick="addTodo()">＋追加</button>
+
+<ul>
+  ${t.todos.map((todo, i) => `
+    <li>
+      <span onclick="toggleTodo(${i})"
+        style="cursor:pointer; ${todo.done ? 'text-decoration: line-through;' : ''}">
+        ${todo.text}
+      </span>
+      <button onclick="deleteTodo(${i})">削除</button>
+    </li>
+  `).join("")}
+</ul>
     <h1>${t.name}</h1>
     <div class="big">⏱ ${h}時間 ${m}分 ${s}秒</div>
     <div class="medium">状態: ${t.start ? "勉強中" : "停止中"}</div>
