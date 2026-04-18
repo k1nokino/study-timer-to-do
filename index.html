@@ -383,7 +383,8 @@ let selectedDate = null;
 function selectDate(day) {
   let now = new Date();
   selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
-  alert(selectedDate);
+
+  renderMain(); // ←これ追加🔥
 }
 let today = new Date().getDate();
 
