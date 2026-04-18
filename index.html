@@ -154,7 +154,11 @@ button {
 
 <script>
 console.log("JS読み込まれてる");
+let calendarTodos = JSON.parse(localStorage.getItem("calendarTodos") || "{}");
 
+function saveTodos() {
+  localStorage.setItem("calendarTodos", JSON.stringify(calendarTodos));
+}
 let timers = JSON.parse(localStorage.getItem("timers") || "[]");
 let current = null;
 
@@ -219,12 +223,14 @@ function renderMain() {
   let s = elapsed % 60;
 
   c.innerHTML = `
-  　<h3>ToDo</h3>
+let todos = calendarTodos[selectedDate] || [];
+
+<h3>ToDo（${selectedDate || "日付未選択"}）</h3>
 
 <button onclick="addTodo()">＋追加</button>
 
 <ul>
-  ${t.todos.map((todo, i) => `
+  ${todos.map((todo, i) => `
     <li>
       <span onclick="toggleTodo(${i})"
         style="cursor:pointer; ${todo.done ? 'text-decoration: line-through;' : ''}">
@@ -233,6 +239,7 @@ function renderMain() {
       <button onclick="deleteTodo(${i})">削除</button>
     </li>
   `).join("")}
+</ul>
 </ul>
     <h1>${t.name}</h1>
     <div class="big">⏱ ${h}時間 ${m}分 ${s}秒</div>
@@ -302,29 +309,46 @@ timers.push({
   total: 0,
   start: null,
   history: [],
-  todos: []   // ←これ追加
 });
 function addTodo() {
+  if (!selectedDate) {
+    alert("日付を選択してください");
+    return;
+  }
+
   let text = prompt("やること");
   if (!text) return;
 
-  timers[current].todos.push({
+  if (!calendarTodos[selectedDate]) {
+    calendarTodos[selectedDate] = [];
+  }
+
+  calendarTodos[selectedDate].push({
     text,
     done: false
   });
 
-  save();
+  saveTodos();
   renderMain();
 }
 function toggleTodo(index) {
-  let t = timers[current];
-  t.todos[index].done = !t.todos[index].done;
-  save();
+  if (!selectedDate) return;
+
+  let todos = calendarTodos[selectedDate];
+  if (!todos) return;
+
+  todos[index].done = !todos[index].done;
+
+  saveTodos();
   renderMain();
 }
+
 function deleteTodo(index) {
-  timers[current].todos.splice(index, 1);
-  save();
+  if (!selectedDate) return;
+
+  calendarTodos[selectedDate].splice(index, 1);
+
+  saveTodos();
   renderMain();
 }
 function renderCalendar() {
