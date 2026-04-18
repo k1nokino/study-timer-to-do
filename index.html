@@ -227,7 +227,6 @@ function renderMain() {
     </ul>
     <h3>カレンダー</h3>
     <div id="calendar"></div>
-    renderCalendar();
   `;
 }
 
@@ -333,6 +332,7 @@ function selectDate(day) {
   selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
   alert(selectedDate);
 }
+  renderCalendar();
 </script>
 
 </body>
