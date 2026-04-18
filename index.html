@@ -225,6 +225,9 @@ function renderMain() {
     <ul>
       ${t.history.map(h => `<li>${h}</li>`).join("")}
     </ul>
+    <h3>カレンダー</h3>
+    <div id="calendar"></div>
+    renderCalendar();
   `;
 }
 
@@ -295,6 +298,40 @@ function deleteTodo(index) {
   timers[current].todos.splice(index, 1);
   save();
   renderMain();
+}
+function renderCalendar() {
+  let cal = document.getElementById("calendar");
+  let now = new Date();
+  let year = now.getFullYear();
+  let month = now.getMonth();
+
+  let firstDay = new Date(year, month, 1).getDay();
+  let lastDate = new Date(year, month + 1, 0).getDate();
+
+  let html = "<table border='1'><tr>";
+
+  let days = ["日","月","火","水","木","金","土"];
+  days.forEach(d => html += "<th>" + d + "</th>");
+  html += "</tr><tr>";
+
+  for (let i = 0; i < firstDay; i++) {
+    html += "<td></td>";
+  }
+
+  for (let d = 1; d <= lastDate; d++) {
+    html += `<td onclick="selectDate(${d})">${d}</td>`;
+    if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
+  }
+
+  html += "</tr></table>";
+  cal.innerHTML = html;
+}
+let selectedDate = null;
+
+function selectDate(day) {
+  let now = new Date();
+  selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
+  alert(selectedDate);
 }
 </script>
 
