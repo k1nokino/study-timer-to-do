@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>勉強時間アプリ</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.big {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.medium {
+  font-size: 20px;
+}
+
+.small {
+  font-size: 14px;
+  color: gray;
+}
+/* サイドバー */
+.sidebar {
+  width: 25%;
+  height: 100vh;
+  background: #2c3e50;
+  color: white;
+  float: left;
+  padding: 15px;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
+
+.sidebar.hidden {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* メイン */
+.main {
+  width: 75%;
+  height: 100vh;
+  float: left;
+  padding: 20px;
+  box-sizing: border-box;
+  transition: 0.3s;
+}
+
+.main.full {
+  width: 100%;
+}
+
+/* カード */
+.card {
+  background: #f5f6fa;
+  padding: 20px;
+  border-radius: 15px;
+}
+
+/* ボタン */
+button {
+  padding: 8px 12px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.add { background: #27ae60; color: white; }
+.delete { background: red; color: white; }
+
+/* 科目一覧 */
+.item {
+  background: #34495e;
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    float: none;
+  }
+
+  .main {
+    width: 100%;
+    float: none;
+  }
+
+  .big {
+    font-size: 28px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 左 -->
+<div id="sidebar" class="sidebar">
+  <button onclick="toggleSidebar()">← 閉じる</button>
+  <h2>科目</h2>
+
+  <button class="add" onclick="createTimer()">＋追加</button>
+
+  <div id="list"></div>
+</div>
+
+<!-- 右 -->
+<div id="main" class="main">
+  <button onclick="toggleSidebar()">☰</button>
+
+  <div id="content" class="card">
+    <h2>科目を選択してください</h2>
+  </div>
+</div>
+
+
+
+<script>
+console.log("JS読み込まれてる");
+
+let timers = JSON.parse(localStorage.getItem("timers") || "[]");
+let current = null;
+
+function save() {
+  localStorage.setItem("timers", JSON.stringify(timers));
+}
+
+function toggleSidebar() {
+  let sb = document.getElementById("sidebar");
+  let main = document.getElementById("main");
+
+  sb.classList.toggle("hidden");
+  main.classList.toggle("full");
+}
+
+function createTimer() {
+  let name = prompt("科目名");
+  if (!name) return;
+
+  timers.push({ name, total: 0, start: null, history: [] });
+  save();
+  renderList();
+}
+
+function renderList() {
+  let list = document.getElementById("list");
+  list.innerHTML = "";
+
+  timers.forEach((t, i) => {
+    let div = document.createElement("div");
+    div.className = "item";
+    div.innerText = t.name;
+    div.onclick = () => selectTimer(i);
+    list.appendChild(div);
+  });
+}
+
+function selectTimer(index) {
+  current = index;
+  renderMain();
+}
+
+function renderMain() {
+  let c = document.getElementById("content");
+
+  if (current === null) {
+    c.innerHTML = "<h2>科目を選択してください</h2>";
+    return;
+  }
+
+  let t = timers[current];
+
+  let now = new Date();
+  let elapsed = 0;
+
+  if (t.start) {
+    elapsed = Math.floor((now - new Date(t.start)) / 1000);
+  }
+
+  let h = Math.floor(elapsed / 3600);
+  let m = Math.floor((elapsed % 3600) / 60);
+  let s = elapsed % 60;
+
+  c.innerHTML = `
+    <h1>${t.name}</h1>
+    <div class="big">⏱ ${h}時間 ${m}分 ${s}秒</div>
+    <div class="medium">状態: ${t.start ? "勉強中" : "停止中"}</div>
+    <div class="medium">合計: ${t.total.toFixed(2)} 時間</div>
+    <div class="small">
+      ${t.start ? "開始: " + new Date(t.start).toLocaleString() : ""}
+    </div>
+
+    <button onclick="toggle()">
+      ${t.start ? "終了" : "開始"}
+    </button>
+
+    <button class="delete" onclick="removeTimer()">削除</button>
+
+    <h3>履歴</h3>
+    <ul>
+      ${t.history.map(h => `<li>${h}</li>`).join("")}
+    </ul>
+  `;
+}
+
+function toggle() {
+  let t = timers[current];
+
+  if (!t.start) {
+    t.start = new Date();
+  } else {
+    let end = new Date();
+    let diff = (end - new Date(t.start)) / 1000 / 60 / 60;
+
+    t.total += diff;
+    t.history.push(
+      new Date(t.start).toLocaleString() + "〜" +
+      end.toLocaleString() +
+      "（" + diff.toFixed(2) + "時間）"
+    );
+
+    t.start = null;
+    save();
+  }
+
+  renderMain();
+}
+
+function removeTimer() {
+  if (confirm("削除しますか？")) {
+    timers.splice(current, 1);
+    current = null;
+    save();
+    renderList();
+    renderMain();
+  }
+}
+
+renderList();
+
+setInterval(() => {
+  if (current !== null) renderMain();
+}, 1000);
+</script>
+
+</body>
+</html>
