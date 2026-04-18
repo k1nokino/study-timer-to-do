@@ -227,19 +227,21 @@ let todos = calendarTodos[selectedDate] || [];
 
 <h3>ToDo（${selectedDate || "日付未選択"}）</h3>
 
-<button onclick="addTodo()">＋追加</button>
+${selectedDate ? `
+  <button onclick="addTodo()">＋追加</button>
 
-<ul>
-  ${todos.map((todo, i) => `
-    <li>
-      <span onclick="toggleTodo(${i})"
-        style="cursor:pointer; ${todo.done ? 'text-decoration: line-through;' : ''}">
-        ${todo.text}
-      </span>
-      <button onclick="deleteTodo(${i})">削除</button>
-    </li>
-  `).join("")}
-</ul>
+  <ul>
+    ${todos.map((todo, i) => `
+      <li>
+        <span onclick="toggleTodo(${i})"
+          style="cursor:pointer; ${todo.done ? 'text-decoration: line-through;' : ''}">
+          ${todo.text}
+        </span>
+        <button onclick="deleteTodo(${i})">削除</button>
+      </li>
+    `).join("")}
+  </ul>
+` : `<p>日付を選択してください</p>`}
 </ul>
     <h1>${t.name}</h1>
     <div class="big">⏱ ${h}時間 ${m}分 ${s}秒</div>
