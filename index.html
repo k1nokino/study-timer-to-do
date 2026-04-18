@@ -266,6 +266,36 @@ renderList();
 setInterval(() => {
   if (current !== null) renderMain();
 }, 1000);
+timers.push({
+  name,
+  total: 0,
+  start: null,
+  history: [],
+  todos: []   // ←これ追加
+});
+function addTodo() {
+  let text = prompt("やること");
+  if (!text) return;
+
+  timers[current].todos.push({
+    text,
+    done: false
+  });
+
+  save();
+  renderMain();
+}
+function toggleTodo(index) {
+  let t = timers[current];
+  t.todos[index].done = !t.todos[index].done;
+  save();
+  renderMain();
+}
+function deleteTodo(index) {
+  timers[current].todos.splice(index, 1);
+  save();
+  renderMain();
+}
 </script>
 
 </body>
