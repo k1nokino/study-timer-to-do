@@ -384,6 +384,9 @@ function selectDate(day) {
   let now = new Date();
   selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
 
+function selectDate(day) {
+  console.log("クリックされた:", day); // ←追加
+}
   renderMain(); // ←これ追加🔥
 }
 let today = new Date().getDate();
@@ -391,9 +394,6 @@ let today = new Date().getDate();
 for (let d = 1; d <= lastDate; d++) {
   let cls = (d === today) ? "today" : "";
   html += `<td class="${cls}" onclick="selectDate(${d})">${d}</td>`;
-}
-function selectDate(day) {
-  console.log("クリックされた:", day); // ←追加
 }
 </script>
 
