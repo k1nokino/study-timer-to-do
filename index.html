@@ -223,8 +223,6 @@ function renderMain() {
   let s = elapsed % 60;
 
   c.innerHTML = `
-let todos = calendarTodos[selectedDate] || [];
-
 <h3>ToDo（${selectedDate || "日付未選択"}）</h3>
 
 ${selectedDate ? `
