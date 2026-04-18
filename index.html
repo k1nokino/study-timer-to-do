@@ -374,11 +374,6 @@ let today = new Date().getDate();
 
 for (let d = 1; d <= lastDate; d++) {
   let cls = (d === today) ? "today" : "";
-
-  html += `<td class="day ${cls}" data-day="${d}">${d}</td>`;
-
-  if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
-}
   html += `<td class="day" data-day="${d}">${d}</td>`;
   if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
 }
