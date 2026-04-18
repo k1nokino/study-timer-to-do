@@ -383,10 +383,7 @@ let selectedDate = null;
 function selectDate(day) {
   let now = new Date();
   selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
-
-function selectDate(day) {
   console.log("クリックされた:", day); // ←追加
-}
   renderMain(); // ←これ追加🔥
 }
 let today = new Date().getDate();
