@@ -228,6 +228,8 @@ function renderMain() {
     <h3>カレンダー</h3>
     <div id="calendar"></div>
   `;
+  
+  renderCalendar();
 }
 
 function toggle() {
@@ -332,7 +334,6 @@ function selectDate(day) {
   selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
   alert(selectedDate);
 }
-  renderCalendar();
 </script>
 
 </body>
