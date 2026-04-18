@@ -128,282 +128,250 @@ button {
 }
 </style>
 </head>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>勉強時間アプリ</title>
+
+<style>
+body { margin:0; font-family:sans-serif; }
+
+.sidebar {
+  width:25%; height:100vh; background:#2c3e50; color:white;
+  float:left; padding:15px; box-sizing:border-box;
+}
+.main {
+  width:75%; float:left; padding:20px;
+}
+.card {
+  background:#f5f6fa; padding:20px; border-radius:15px;
+}
+.item {
+  background:#34495e; padding:8px; margin:5px 0; border-radius:8px;
+  cursor:pointer;
+}
+button { margin:5px; padding:8px; }
+
+#calendar td {
+  border:1px solid #ccc;
+  padding:10px;
+  cursor:pointer;
+}
+.today { background:#27ae60; color:white; }
+</style>
+</head>
 
 <body>
 
-<!-- 左 -->
+<!-- タイマー画面 -->
+<div id="timerPage">
+
 <div id="sidebar" class="sidebar">
-  <button onclick="toggleSidebar()">← 閉じる</button>
+  <button onclick="toggleSidebar()">←</button>
   <h2>科目</h2>
-
-  <button class="add" onclick="createTimer()">＋追加</button>
-
+  <button onclick="createTimer()">＋追加</button>
   <div id="list"></div>
 </div>
 
-<!-- 右 -->
 <div id="main" class="main">
   <button onclick="toggleSidebar()">☰</button>
+  <button onclick="showCalendar()">📅</button>
 
   <div id="content" class="card">
     <h2>科目を選択してください</h2>
   </div>
 </div>
 
+</div>
 
+<!-- カレンダー画面 -->
+<div id="calendarPage" style="display:none;">
+  <button onclick="showTimer()">← 戻る</button>
+
+  <h1>📅 カレンダー</h1>
+  <div id="calendar"></div>
+
+  <h2 id="dateTitle">日付未選択</h2>
+  <button onclick="addTodo()">＋ToDo</button>
+  <ul id="todoList"></ul>
+
+  <h3 id="avg"></h3>
+</div>
 
 <script>
-console.log("JS読み込まれてる");
-let calendarTodos = JSON.parse(localStorage.getItem("calendarTodos") || "{}");
+let timers = JSON.parse(localStorage.getItem("timers")||"[]");
+let calendarTodos = JSON.parse(localStorage.getItem("calendarTodos")||"{}");
 
-function saveTodos() {
-  localStorage.setItem("calendarTodos", JSON.stringify(calendarTodos));
-}
-let timers = JSON.parse(localStorage.getItem("timers") || "[]");
 let current = null;
+let selectedDate = null;
 
-function save() {
-  localStorage.setItem("timers", JSON.stringify(timers));
+function save(){ localStorage.setItem("timers",JSON.stringify(timers)); }
+function saveTodos(){ localStorage.setItem("calendarTodos",JSON.stringify(calendarTodos)); }
+
+/* 画面切り替え */
+function showCalendar(){
+  document.getElementById("timerPage").style.display="none";
+  document.getElementById("calendarPage").style.display="block";
+  renderCalendar();
+}
+function showTimer(){
+  document.getElementById("timerPage").style.display="block";
+  document.getElementById("calendarPage").style.display="none";
 }
 
-function toggleSidebar() {
-  let sb = document.getElementById("sidebar");
-  let main = document.getElementById("main");
+/* タイマー */
+function createTimer(){
+  let name=prompt("科目名");
+  if(!name)return;
 
-  sb.classList.toggle("hidden");
-  main.classList.toggle("full");
-}
-
-function createTimer() {
-  let name = prompt("科目名");
-  if (!name) return;
-
+  timers.push({name,total:0,start:null,history:[]});
   save();
   renderList();
 }
-
-function renderList() {
-  let list = document.getElementById("list");
-  list.innerHTML = "";
-
-  timers.forEach((t, i) => {
-    let div = document.createElement("div");
-    div.className = "item";
-    div.innerText = t.name;
-    div.onclick = () => selectTimer(i);
-    list.appendChild(div);
+function renderList(){
+  let list=document.getElementById("list");
+  list.innerHTML="";
+  timers.forEach((t,i)=>{
+    let d=document.createElement("div");
+    d.className="item";
+    d.innerText=t.name;
+    d.onclick=()=>selectTimer(i);
+    list.appendChild(d);
   });
 }
-
-function selectTimer(index) {
-  current = index;
+function selectTimer(i){
+  current=i;
   renderMain();
 }
+function renderMain(){
+  let c=document.getElementById("content");
+  if(current===null){c.innerHTML="<h2>選択して</h2>";return;}
 
-function renderMain() {
-  let todos = selectedDate ? (calendarTodos[selectedDate] || []) : [];
-  let c = document.getElementById("content");
+  let t=timers[current];
+  let now=new Date();
+  let sec=t.start?Math.floor((now-new Date(t.start))/1000):0;
 
-  if (current === null) {
-    c.innerHTML = "<h2>科目を選択してください</h2>";
-    return;
-  }
+  let h=Math.floor(sec/3600);
+  let m=Math.floor(sec%3600/60);
+  let s=sec%60;
 
-  let t = timers[current];
-
-  let now = new Date();
-  let elapsed = 0;
-
-  if (t.start) {
-    elapsed = Math.floor((now - new Date(t.start)) / 1000);
-  }
-
-  let h = Math.floor(elapsed / 3600);
-  let m = Math.floor((elapsed % 3600) / 60);
-  let s = elapsed % 60;
-
-  c.innerHTML = `
-<h3>ToDo（${selectedDate || "日付未選択"}）</h3>
-
-${selectedDate ? `
-  <button onclick="addTodo()">＋追加</button>
-
-  <ul>
-    ${todos.map((todo, i) => `
-      <li>
-        <span onclick="toggleTodo(${i})"
-          style="cursor:pointer; ${todo.done ? 'text-decoration: line-through;' : ''}">
-          ${todo.text}
-        </span>
-        <button onclick="deleteTodo(${i})">削除</button>
-      </li>
-    `).join("")}
-  </ul>
-` : `<p>日付を選択してください</p>`}
-</ul>
+  c.innerHTML=`
     <h1>${t.name}</h1>
-    <div class="big">⏱ ${h}時間 ${m}分 ${s}秒</div>
-    <div class="medium">状態: ${t.start ? "勉強中" : "停止中"}</div>
-    <div class="medium">合計: ${t.total.toFixed(2)} 時間</div>
-    <div class="small">
-      ${t.start ? "開始: " + new Date(t.start).toLocaleString() : ""}
-    </div>
+    <div>⏱ ${h}:${m}:${s}</div>
+    <div>合計 ${t.total.toFixed(2)} 時間</div>
 
-    <button onclick="toggle()">
-      ${t.start ? "終了" : "開始"}
-    </button>
-
-    <button class="delete" onclick="removeTimer()">削除</button>
+    <button onclick="toggle()">${t.start?"終了":"開始"}</button>
+    <button onclick="removeTimer()">削除</button>
 
     <h3>履歴</h3>
-    <ul>
-      ${t.history.map(h => `<li>${h}</li>`).join("")}
-    </ul>
-    <h3>カレンダー</h3>
-    <div id="calendar"></div>
+    <ul>${t.history.map(h=>`<li>${h}</li>`).join("")}</ul>
   `;
-  
-  renderCalendar();
 }
-
-function toggle() {
-  let t = timers[current];
-
-  if (!t.start) {
-    t.start = new Date();
-  } else {
-    let end = new Date();
-    let diff = (end - new Date(t.start)) / 1000 / 60 / 60;
-
-    t.total += diff;
-    t.history.push(
-      new Date(t.start).toLocaleString() + "〜" +
-      end.toLocaleString() +
-      "（" + diff.toFixed(2) + "時間）"
-    );
-
-    t.start = null;
+function toggle(){
+  let t=timers[current];
+  if(!t.start){ t.start=new Date(); }
+  else{
+    let end=new Date();
+    let diff=(end-new Date(t.start))/1000/3600;
+    t.total+=diff;
+    t.history.push("記録 "+diff.toFixed(2)+"h");
+    t.start=null;
     save();
   }
-
+  renderMain();
+}
+function removeTimer(){
+  timers.splice(current,1);
+  current=null;
+  save();
+  renderList();
   renderMain();
 }
 
-function removeTimer() {
-  if (confirm("削除しますか？")) {
-    timers.splice(current, 1);
-    current = null;
-    save();
-    renderList();
-    renderMain();
+/* カレンダー */
+function renderCalendar(){
+  let cal=document.getElementById("calendar");
+  let now=new Date();
+  let y=now.getFullYear();
+  let m=now.getMonth();
+
+  let first=new Date(y,m,1).getDay();
+  let last=new Date(y,m+1,0).getDate();
+
+  let html="<table><tr>";
+  ["日","月","火","水","木","金","土"].forEach(d=>html+="<th>"+d+"</th>");
+  html+="</tr><tr>";
+
+  for(let i=0;i<first;i++)html+="<td></td>";
+
+  let today=new Date().getDate();
+
+  for(let d=1;d<=last;d++){
+    let cls=d===today?"today":"";
+    html+=`<td class="${cls}" onclick="selectDate(${d})">${d}</td>`;
+    if((first+d)%7===0)html+="</tr><tr>";
   }
+
+  html+="</tr></table>";
+  cal.innerHTML=html;
+}
+
+function selectDate(d){
+  let now=new Date();
+  selectedDate=`${now.getFullYear()}-${now.getMonth()+1}-${d}`;
+  renderTodos();
+}
+
+function renderTodos(){
+  document.getElementById("dateTitle").innerText=selectedDate;
+  let list=document.getElementById("todoList");
+  let todos=calendarTodos[selectedDate]||[];
+
+  list.innerHTML=todos.map((t,i)=>`
+    <li>
+      <span onclick="toggleTodo(${i})" style="${t.done?'text-decoration:line-through':''}">
+        ${t.text}
+      </span>
+      <button onclick="deleteTodo(${i})">削除</button>
+    </li>
+  `).join("");
+
+  calcAvg();
+}
+
+function addTodo(){
+  if(!selectedDate)return alert("日付選べ");
+  let text=prompt("やること");
+  if(!text)return;
+
+  if(!calendarTodos[selectedDate])calendarTodos[selectedDate]=[];
+  calendarTodos[selectedDate].push({text,done:false});
+
+  saveTodos();
+  renderTodos();
+}
+
+function toggleTodo(i){
+  calendarTodos[selectedDate][i].done=!calendarTodos[selectedDate][i].done;
+  saveTodos();
+  renderTodos();
+}
+function deleteTodo(i){
+  calendarTodos[selectedDate].splice(i,1);
+  saveTodos();
+  renderTodos();
+}
+
+function calcAvg(){
+  let total=0;
+  timers.forEach(t=>total+=t.total);
+  let avg=timers.length?(total/timers.length).toFixed(2):0;
+  document.getElementById("avg").innerText="平均: "+avg+"時間";
 }
 
 renderList();
-
-setInterval(() => {
-  if (current !== null) renderMain();
-}, 1000);
-timers.push({
-  name,
-  total: 0,
-  start: null,
-  history: [],
-});
-function addTodo() {
-  if (!selectedDate) {
-    alert("日付を選択してください");
-    return;
-  }
-
-  let text = prompt("やること");
-  if (!text) return;
-
-  if (!calendarTodos[selectedDate]) {
-    calendarTodos[selectedDate] = [];
-  }
-
-  calendarTodos[selectedDate].push({
-    text,
-    done: false
-  });
-
-  saveTodos();
-  renderMain();
-}
-function toggleTodo(index) {
-  if (!selectedDate) return;
-
-  let todos = calendarTodos[selectedDate];
-  if (!todos) return;
-
-  todos[index].done = !todos[index].done;
-
-  saveTodos();
-  renderMain();
-}
-
-function deleteTodo(index) {
-  if (!selectedDate) return;
-
-  calendarTodos[selectedDate].splice(index, 1);
-
-  saveTodos();
-  renderMain();
-}
-function renderCalendar() {
-  let cal = document.getElementById("calendar");
-  let now = new Date();
-  let year = now.getFullYear();
-  let month = now.getMonth();
-
-  let firstDay = new Date(year, month, 1).getDay();
-  let lastDate = new Date(year, month + 1, 0).getDate();
-
-  let html = "<table border='1'><tr>";
-
-  let days = ["日","月","火","水","木","金","土"];
-  days.forEach(d => html += "<th>" + d + "</th>");
-  html += "</tr><tr>";
-
-  for (let i = 0; i < firstDay; i++) {
-    html += "<td></td>";
-  }
-
-let today = new Date().getDate();
-
-for (let d = 1; d <= lastDate; d++) {
-  let cls = (d === today) ? "today" : "";
-  html += `<td class="day" data-day="${d}">${d}</td>`;
-  if ((firstDay + d) % 7 === 0) html += "</tr><tr>";
-}
-setTimeout(() => {
-  document.querySelectorAll(".day").forEach(td => {
-    td.addEventListener("click", () => {
-      let day = td.dataset.day;
-
-      let now = new Date();
-      selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
-
-      console.log("クリックされた:", selectedDate);
-
-      renderMain();
-    });
-  });
-}, 0);
-
-  html += "</tr></table>";
-  cal.innerHTML = html;
-}
-let selectedDate = null;
-
-function selectDate(day) {
-  let now = new Date();
-  selectedDate = `${now.getFullYear()}-${now.getMonth()+1}-${day}`;
-  console.log("クリックされた:", day); // ←追加
-  renderMain(); // ←これ追加🔥
-}
-
+setInterval(()=>{ if(current!==null)renderMain(); },1000);
 </script>
 
 </body>
