@@ -34,6 +34,10 @@ body {
   box-sizing: border-box;
   transition: 0.3s;
 }
+  
+.main.full {
+  width: 100%;
+}
 
 .sidebar.hidden {
   width: 0;
@@ -210,6 +214,13 @@ function save(){ localStorage.setItem("timers",JSON.stringify(timers)); }
 function saveTodos(){ localStorage.setItem("calendarTodos",JSON.stringify(calendarTodos)); }
 
 /* 画面切り替え */
+function toggleSidebar() {
+  let sb = document.getElementById("sidebar");
+  let main = document.getElementById("main");
+
+  sb.classList.toggle("hidden");
+  main.classList.toggle("full");
+}
 function showCalendar(){
   document.getElementById("timerPage").style.display="none";
   document.getElementById("calendarPage").style.display="block";
